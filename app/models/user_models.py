@@ -30,7 +30,15 @@ class User(db.Model, UserMixin):
     roles = db.relationship('Role', secondary='users_roles',
                             backref=db.backref('users', lazy='dynamic'))
 
-
+    todos = db.relationship('ToDo',
+                        backref=db.backref('users',
+                        lazy=True))
+    def __repr__(self):
+        return '<id={},name={}, {}>'.format(
+                self.id,
+                self.last_name,
+                self.first_name)
+                
 # Define the Role data model
 class Role(db.Model):
     __tablename__ = 'roles'

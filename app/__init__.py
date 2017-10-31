@@ -13,6 +13,8 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import UserManager, SQLAlchemyAdapter
 from flask_wtf.csrf import CSRFProtect
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 
 # Instantiate Flask extensions
 db = SQLAlchemy()
@@ -34,6 +36,11 @@ def create_app(extra_config_settings={}):
     app.config.from_object('app.local_settings')
     # Load extra config settings from 'extra_config_settings' param
     app.config.update(extra_config_settings)
+
+    # Setup flask admin
+    admin = Admin(app,
+                  name='bigstarter',
+                  template_mode='bootstrap3')
 
     # Setup Flask-Extensions -- do this _after_ app config has been loaded
 
@@ -66,7 +73,9 @@ def create_app(extra_config_settings={}):
 
     # Setup Flask-User to handle user account related forms
     from .models.user_models import User, MyRegisterForm
+    from .models.todo_models import ToDo
     from .views.misc_views import user_profile_page
+
 
     db_adapter = SQLAlchemyAdapter(db, User)  # Setup the SQLAlchemy DB Adapter
     user_manager = UserManager(db_adapter, app,  # Init Flask-User and bind to app
@@ -74,6 +83,7 @@ def create_app(extra_config_settings={}):
                                user_profile_view_function=user_profile_page,
     )
 
+    config_admin_views(admin, User, ToDo)
     return app
 
 
@@ -113,6 +123,6 @@ def init_email_error_handler(app):
 
     # Log errors using: app.logger.error('Some error message')
 
-
-
-
+def config_admin_views(admin, User, ToDo):
+    admin.add_view(ModelView(User, db.session))
+    admin.add_view(ModelView(ToDo, db.session))
